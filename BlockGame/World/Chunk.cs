@@ -9,14 +9,19 @@ namespace BlockGame.World
         public int chunkY;
         public int chunkZ;
 
-        private byte[,,] chunkData;
+        private byte[] chunkData;
+
+        public byte[] GetChunkData()
+        {
+            return chunkData;
+        }
+
 
         public bool isOptimized = false;
         public bool isGenerated = false;
         public Chunk(int x, int y, int z)
         {
-
-            chunkData = new byte[16, 16, 16];
+            chunkData = new byte[4096];
 
             chunkX = x;
             chunkY = y;
@@ -44,14 +49,17 @@ namespace BlockGame.World
 
         public void SetVoxelAt(int x, int y, int z, byte voxel)
         {
-            chunkData[x, y, z] = voxel;
+            int index = x + (y * 16) + (z * 256);
+
+            chunkData[index] = voxel;
             RegenerateMeshes();
             UpdateNear();
         }
 
         public byte GetVoxelAt(int x, int y, int z)
         {
-            return chunkData[x, y, z];
+            int index = x + (y * 16) + (z * 256);
+            return chunkData[index];
         }
 
         public string GetFilePath()
@@ -68,24 +76,18 @@ namespace BlockGame.World
                 for (int y = 0; y < 16; y++)
                     for (int z = 0; z < 16; z++)
                     {
-                        chunkData[x, y, z] = data[GetIndexOf(x, y, z)];
+                        int index = x + (y * 16) + (z * 256);
+                        chunkData[index] = data[GetIndexOf(x, y, z)];
                     }
 
             RegenerateMeshes(false);
         }
 
+        public bool isDirty;
+
         public void SaveToFile()
         {
-            byte[] data = new byte[16 * 16 * 16];
-
-            for (int x = 0; x < 16; x++)
-                for (int y = 0; y < 16; y++)
-                    for (int z = 0; z < 16; z++)
-                    {
-                        data[GetIndexOf(x, y, z)] = chunkData[x, y, z];
-                    }
-
-            File.WriteAllBytes(GetFilePath(), data);
+            isDirty = true;
         }
 
         private int GetIndexOf(int x, int y, int z)
@@ -131,6 +133,8 @@ namespace BlockGame.World
                 return;
             }
 
+            Random rng = new Random();
+
             for (int x = 0; x < 16; x++)
                 for (int y = 0; y < 16; y++)
                     for (int z = 0; z < 16; z++)
@@ -139,39 +143,47 @@ namespace BlockGame.World
 
                         float frequency = 0.02f;
                         float hill = (float)Level.noise.GetValue(worldPos.X * frequency, worldPos.Z * frequency);
+                        float biome = (float)Level.noise.GetValue(worldPos.X * 0.002f, (worldPos.Z * 0.002f) + 10000);
 
 
                         int waterLevel = -3;
+                        int index = x + (y * 16) + (z * 256);
+                        float surface = hill * (biome * 12);
 
-                        if (worldPos.Y + 3 < hill * 15)
-                        {
-                            chunkData[x, y, z] = 0x04;
-                        }
-                        else if (worldPos.Y < hill * 15)
-                        {
-                            // Underground
-                            chunkData[x, y, z] = 0x01;
 
-                            // Sand
-                            if (worldPos.Y < waterLevel + 1)
+                        if (worldPos.Y <= surface)
+                        {
+                            float depth = surface - worldPos.Y;
+
+                            if (depth <= 3)
                             {
-                                chunkData[x, y, z] = 0x03;
+                                chunkData[index] = 0x01; // dirt
+                            }
+                            else
+                            {
+                                chunkData[index] = 0x03; // stone
                             }
                         }
                         else
                         {
-
                             // Above ground
-                            if (worldPos.Y < waterLevel)
+                            if (worldPos.Y <= waterLevel)
                             {
-                                chunkData[x, y, z] = 0x02;
+                                chunkData[index] = 0x02; // water
                             }
                             else
                             {
-                                chunkData[x, y, z] = 0x00;
+                                chunkData[index] = 0x00; // air
                             }
                         }
 
+                        if (worldPos.Y == (int)surface && chunkData[index] == 0x00)
+                        {
+                            if (rng.Next(0, 20) == 2)
+                            {
+                                chunkData[index] = 0x07; // plant
+                            }
+                        }
 
                         if (worldPos.Y + 10 < hill)
                         {
@@ -180,7 +192,7 @@ namespace BlockGame.World
 
 
                             if (cave > -.2 && cave < .2 && cave2 > 0.4)
-                                chunkData[x, y, z] = 0x00;
+                                chunkData[index] = 0x00;
                         }
 
 
@@ -211,26 +223,22 @@ namespace BlockGame.World
             }
 
 
-            for (int x = 0; x < 16; x++)
-                for (int y = 0; y < 16; y++)
-                    for (int z = 0; z < 16; z++)
-                    {
-                        byte voxel = GetVoxelAt(x, y, z);
+            byte[] waterMask = new byte[16 * 16 * 16];
+            byte[] solidMask = new byte[16 * 16 * 16];
+            for (int i = 0; i < 16 * 16 * 16; i++)
+            {
+                if (chunkData[i] == 0x02)
+                {
+                    waterMask[i] = chunkData[i];
+                }
+                else
+                {
+                    solidMask[i] = chunkData[i];
+                }
+            }
 
-                        if (voxel == 2)
-                        {
-                            waterMesh.SetVoxel(x, y, z, voxel);
-                            solidMesh.SetVoxel(x, y, z, 0);
-                        }
-                        else
-                        {
-                            solidMesh.SetVoxel(x, y, z, voxel);
-                            waterMesh.SetVoxel(x, y, z, 0);
-                        }
-                    }
-
-            waterMesh.Regenerate();
-            solidMesh.Regenerate();
+            waterMesh.Regenerate(waterMask);
+            solidMesh.Regenerate(solidMask);
         }
 
         public Vector3i GetWorldPos(int x, int y, int z)

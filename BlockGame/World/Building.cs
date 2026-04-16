@@ -25,7 +25,7 @@ namespace BlockGame.World
             RenderCanvas.Update += Update;
         }
 
-        private byte[] inventory = { 1, 3, 4, 5, 6, 7, 8, 9 };
+        private byte[] inventory = { 1, 3, 4, 5, 6, 8, 11, 12 };
         private float selectedIndex = 0;
 
 
@@ -37,8 +37,8 @@ namespace BlockGame.World
 
             if (scroll != 0)
             {
-                if (scroll > 0) selectedIndex -= RenderCanvas.deltaTime * 10;
-                else if (scroll < 0) selectedIndex += RenderCanvas.deltaTime * 10;
+                if (scroll > 0) selectedIndex -= RenderCanvas.deltaTime * 100;
+                else if (scroll < 0) selectedIndex += RenderCanvas.deltaTime * 100;
 
                 if (selectedIndex < 0) selectedIndex = inventory.Length - 1;
                 if (selectedIndex >= inventory.Length) selectedIndex = 0;

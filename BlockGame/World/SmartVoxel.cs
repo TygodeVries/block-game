@@ -10,45 +10,25 @@ namespace BlockGame.World
 
         public static void Initialize()
         {
-            smartVoxels.Add(0x03, new SandVoxel());
-            //  smartVoxels.Add(0x02, new WaterVoxel());
+            smartVoxels.Add(0x04, new GrassVoxel());
+            smartVoxels.Add(0x08, new SaplingVoxel());
         }
 
-        public static void BlockUpdateAround(Vector3i pos)
+        public static void DoRandomTick(Vector3i pos)
         {
-            for (int x = -1; x <= 1; x++)
-                for (int y = -1; y <= 1; y++)
-                    for (int z = -1; z <= 1; z++)
-                        BlockUpdate(pos + new Vector3i(x, y, z));
-        }
+            byte? block = Level.GetVoxelAt(pos.X, pos.Y, pos.Z);
 
-        public static void BlockUpdate(Vector3i pos)
-        {
-            byte? type = Level.GetVoxelAt(pos.X, pos.Y, pos.Z);
-            if (type == null)
+            if (block == null)
                 return;
 
-            if (smartVoxels.ContainsKey(type.Value))
-            {
-                smartVoxels[type.Value].OnBlockUpdate(pos);
-            }
+            if (!smartVoxels.ContainsKey(block.Value))
+                return;
+
+            SmartVoxel sm = smartVoxels[block.Value];
+            sm.OnRandomTick(pos);
         }
 
-        public abstract byte GetBlockId();
-
-        public virtual void OnBlockUpdate(Vector3i pos)
-        {
-
-        }
-
-
-        /// <summary>
-        /// #TODO
-        /// </summary>
-        public virtual void OnRandomTick()
-        {
-
-        }
+        public virtual void OnRandomTick(Vector3i pos) { }
 
         public Vector3 BlockPos;
     }

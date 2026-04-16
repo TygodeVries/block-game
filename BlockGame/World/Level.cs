@@ -15,7 +15,7 @@ namespace BlockGame.World
         public static int verticalViewDistance = 3;
 
 
-        public static string LevelName = "Test";
+        public static string LevelName = "Main";
 
         public static void CreateLevelFolder()
         {
@@ -94,7 +94,6 @@ namespace BlockGame.World
 
         public static void SetVoxelAt(int x, int y, int z, byte voxel)
         {
-            Console.WriteLine($"{x}, {y}, {z}, {voxel}");
 
             int chunkX = (int)MathF.Floor(x / 16f);
             int chunkY = (int)MathF.Floor(y / 16f);
@@ -106,7 +105,6 @@ namespace BlockGame.World
 
             GetChunk(chunkX, chunkY, chunkZ)?.SetVoxelAt(blockX, blockY, blockZ, voxel);
 
-            SmartVoxel.BlockUpdateAround(new Vector3i(x, y, z));
         }
 
 
@@ -211,22 +209,29 @@ namespace BlockGame.World
                     await chunk.Generate();
                 });
 
-                await Task.Delay(1);
-
                 if (generationQueue.Count % 10 == 0)
                 {
-                    Console.Clear();
-
-
-                    Console.WriteLine("[   -  Expanding World  -   ]");
-                    Console.WriteLine($"Generating World... {generationQueue.Count} chunks to go!");
+                    await Task.Delay(1);
                 }
             }
 
-            Console.Clear();
-            Console.WriteLine("[   -  We are Gaming!  -   ]");
-            Console.WriteLine("No chunks to generate.");
             isProcessing = false;
+        }
+
+        public static void Save()
+        {
+
+            lock (Level.Chunks)
+            {
+                foreach (Chunk chunk in Level.Chunks.Values)
+                {
+                    if (chunk.isDirty)
+                    {
+                        chunk.isDirty = false;
+                        File.WriteAllBytes(chunk.GetFilePath(), chunk.GetChunkData());
+                    }
+                }
+            }
         }
     }
 }

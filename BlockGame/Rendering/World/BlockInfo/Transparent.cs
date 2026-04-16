@@ -10,7 +10,7 @@
         /// <returns></returns>
         public static bool IsTransparentBlock(byte blockId)
         {
-            return blockId == 0 || blockId == 5 || blockId == 2 || blockId == 6;
+            return blockId == 0 || blockId == 5 || blockId == 2 || blockId == 6 || blockId == 7 || blockId == 8 || blockId == 0x0A || blockId == 12;
         }
     }
 }

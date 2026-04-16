@@ -152,8 +152,8 @@ namespace BlockGame.Player
 
 
             // Mouse Rotation
-            angle += Mouse.current.mouseDelta.X * (float)time * 0.1f;
-            yaw -= Mouse.current.mouseDelta.Y * (float)time * 0.1f;
+            angle += Mouse.current.mouseDelta.X * 0.0005f;
+            yaw -= Mouse.current.mouseDelta.Y * 0.0005f;
 
             yaw = Math.Clamp(yaw, -0.49f, 0.49f);
 
@@ -172,7 +172,7 @@ namespace BlockGame.Player
             if (block == null)
                 return true;
 
-            return block != 0 && (block != 2 || isGround);
+            return block != 0 && (block != 2 || isGround) && block != 5 && block != 6 && block != 7 && block != 8;
         }
 
         private bool Collides(Vector3 p, bool isGround)

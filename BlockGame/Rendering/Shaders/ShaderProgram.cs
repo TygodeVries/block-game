@@ -151,7 +151,7 @@ namespace BlockGame.Rendering.Shaders
             location = GL.GetUniformLocation(shaderProgramId, name);
             if (location == -1)
             {
-                Console.WriteLine($"Value '{name}' not found in shader, but you are trying to access it anyways!");
+                //  Console.WriteLine($"Value '{name}' not found in shader, but you are trying to access it anyways!");
             }
 
             uniformLocations[name] = location;

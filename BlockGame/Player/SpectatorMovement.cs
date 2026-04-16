@@ -12,6 +12,8 @@ namespace BlockGame.Player
 
         public override void Update(double delta)
         {
+            RenderCanvas.meshes.Remove(RenderCanvas.loadingMesh);
+            RenderCanvas.SetDefaultFog();
             Vector3 goalDelta = Vector3.Zero;
             flightSpeed += Mouse.current.scroll.Y * 1f;
             if (flightSpeed < 0)
