@@ -40,14 +40,16 @@ namespace BlockGame.Entities
 
         private float goalCooldown;
         public float hunger = 10;
+        private float timeSpendOnGoal = 0;
 
         public void Tick()
         {
+            timeSpendOnGoal += RenderCanvas.deltaTime;
             hunger -= RenderCanvas.deltaTime;
             Vector3 toGoal = goalPosition - mesh.position;
             toGoal.Y = 0;
 
-            if (toGoal.LengthSquared > 0.0001f)
+            if (toGoal.LengthSquared > 0.0001f && timeSpendOnGoal < 30)
             {
                 toGoal = toGoal.Normalized();
                 mesh.SetForwards(-toGoal);
@@ -63,13 +65,15 @@ namespace BlockGame.Entities
 
                 if (goal != null)
                 {
-                    goal.Finished(this);
+                    if (timeSpendOnGoal < 30)
+                        goal.Finished(this);
+
                     goal = null;
                 }
 
                 if (goalCooldown < 0)
                 {
-                    if (hunger < 0)
+                    if (hunger < 0 && timeSpendOnGoal < 30)
                     {
                         goal = new HungerGoal();
                     }
@@ -79,6 +83,7 @@ namespace BlockGame.Entities
                     }
 
                     goalPosition = goal.GetGoalLocation(this);
+                    timeSpendOnGoal = 0;
                 }
 
                 goalCooldown -= RenderCanvas.deltaTime;

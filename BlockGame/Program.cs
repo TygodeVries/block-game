@@ -103,7 +103,7 @@ public class Program
 
             Console.WriteLine($"Welcome to LIFEOS, {username}!");
             Thread.Sleep(300);
-            Console.WriteLine($"Its {DateTime.Now.DayOfWeek} {DateTime.Now.Day}/{DateTime.Now.Month}2104.");
+            Console.WriteLine($"Its {DateTime.Now.DayOfWeek} {DateTime.Now.Day}/{DateTime.Now.Month} 2104.");
 
             Thread.Sleep(300);
             Console.WriteLine();
