@@ -1,0 +1,2 @@
+Build the game using a .net compiler
+Then copy the contents of the 'Game Files' folder into the output directory
